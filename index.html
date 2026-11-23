@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#12664b">
+<title>Revista comercial | Quilmes Conectado</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#18382e;background:#edf1ef}*{box-sizing:border-box}body{margin:0}header{background:#12664b;color:white;text-align:center;padding:16px 10px}header h1{font-size:1.25rem;margin:0}header p{margin:4px 0 0;font-size:.87rem;opacity:.9}main{max-width:650px;margin:auto;padding:12px}.nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 13px}button{font:inherit;background:#12664b;color:white;border:0;border-radius:9px;padding:11px 15px;cursor:pointer}button:disabled{opacity:.35;cursor:default}#count{font-size:.95rem;font-weight:700;text-align:center}.page{background:white;padding:10px;display:grid;grid-template-rows:1fr 1fr;gap:10px;min-height:min(75dvh,780px);box-shadow:0 4px 22px #153a2926;border-radius:4px;touch-action:pan-y}.ad{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:225px;border:2px dashed #afc8bc;background:linear-gradient(130deg,#e4f6eb,#f3f6ff);padding:16px;overflow:hidden}.ad:nth-child(2){background:linear-gradient(130deg,#fff0dc,#fbe9f0)}.ad .eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase}.ad h2{font-size:clamp(1.3rem,4.2vw,2rem);margin:0}.ad p{margin:0}.ad .expand{background:#205344;font-size:.86rem;padding:8px 13px}.ad img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:white;cursor:zoom-in}.hint{text-align:center;font-size:.83rem;color:#60746a;line-height:1.5}footer{text-align:center;font-size:.8rem;color:#61766c;padding:10px 0 25px}dialog{border:0;border-radius:12px;padding:0;max-width:97vw;max-height:95dvh;background:#fff;color:#173c2e}dialog::backdrop{background:#000c}.viewer{padding:14px;text-align:center}.viewer img{max-width:92vw;max-height:78dvh;object-fit:contain}.viewer .demo{min-width:min(85vw,400px);padding:30px 10px}.viewer button{margin:12px 0 0}@media(prefers-reduced-motion:no-preference){.page{animation:appear .18s ease-out}@keyframes appear{from{opacity:.6;transform:translateX(7px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<header><h1>QUILMES CONECTADO</h1><p>Revista comercial · Edición de prueba</p></header>
+<main><div class="nav"><button id="prev" type="button">‹ Anterior</button><span id="count" aria-live="polite">Hoja 1 de 25</span><button id="next" type="button">Siguiente ›</button></div><section id="page" class="page" aria-label="Página de la revista"></section><p class="hint">Deslizá para cambiar de hoja. Tocá una publicidad para ampliarla.</p></main>
+<footer>25 hojas · 50 espacios publicitarios · Versión de demostración</footer>
+<dialog id="dialog"><div id="viewer" class="viewer"></div></dialog>
+<script>
+'use strict';
+const HOJAS=25;
+// Cuando haya anuncios reales, reemplazar null por la ruta de cada imagen, por ejemplo: 'anuncios/01.webp'.
+const anuncios=Array.from({length:HOJAS*2},(_,i)=>({titulo:'Publicidad '+String(i+1).padStart(2,'0'),imagen:null}));
+let hoja=0;
+const page=document.getElementById('page'),count=document.getElementById('count'),dialog=document.getElementById('dialog'),viewer=document.getElementById('viewer');
+function ampliar(numero){const anuncio=anuncios[numero];viewer.replaceChildren();if(anuncio.imagen){const img=document.createElement('img');img.src=anuncio.imagen;img.alt=anuncio.titulo;viewer.append(img)}else{const demo=document.createElement('div');demo.className='demo';const h=document.createElement('h2');h.textContent=anuncio.titulo;const p=document.createElement('p');p.textContent='Aquí aparecerá la publicidad real a color.';demo.append(h,p);viewer.append(demo)}const cerrar=document.createElement('button');cerrar.type='button';cerrar.textContent='Cerrar';cerrar.onclick=()=>dialog.close();viewer.append(cerrar);dialog.showModal()}
+function dibujar(){page.replaceChildren();for(let i=0;i<2;i++){const numero=hoja*2+i,anuncio=anuncios[numero];const ad=document.createElement('article');ad.className='ad';const eyebrow=document.createElement('span');eyebrow.className='eyebrow';eyebrow.textContent='Quilmes Conectado';const h=document.createElement('h2');h.textContent=anuncio.titulo;const p=document.createElement('p');p.textContent='Tu comercio puede estar acá';const boton=document.createElement('button');boton.className='expand';boton.type='button';boton.textContent='Ampliar publicidad';boton.onclick=()=>ampliar(numero);ad.append(eyebrow,h,p,boton);if(anuncio.imagen){const img=document.createElement('img');img.src=anuncio.imagen;img.alt=anuncio.titulo;img.loading='lazy';img.onerror=()=>img.remove();img.onclick=()=>ampliar(numero);ad.append(img)}page.append(ad)}count.textContent='Hoja '+(hoja+1)+' de '+HOJAS;document.getElementById('prev').disabled=hoja===0;document.getElementById('next').disabled=hoja===HOJAS-1}
+function mover(n){hoja=Math.max(0,Math.min(HOJAS-1,hoja+n));dibujar()}
+document.getElementById('prev').onclick=()=>mover(-1);document.getElementById('next').onclick=()=>mover(1);
+let inicio=null;page.addEventListener('touchstart',e=>{inicio=e.touches[0].clientX},{passive:true});page.addEventListener('touchend',e=>{if(inicio===null)return;const d=e.changedTouches[0].clientX-inicio;if(Math.abs(d)>65)mover(d<0?1:-1);inicio=null},{passive:true});document.addEventListener('keydown',e=>{if(dialog.open)return;if(e.key==='ArrowRight')mover(1);if(e.key==='ArrowLeft')mover(-1)});dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});dibujar();
+</script>
+</body></html>
