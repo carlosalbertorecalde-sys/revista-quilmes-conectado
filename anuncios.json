@@ -1,36 +1,8 @@
 {
-  "1": {
-    "name": "Durlok",
-    "image": "anuncios/espacio-1-1795550111166.webp"
-  },
-  "7": {
-    "name": "Los",
-    "image": "anuncios/espacio-7-1795550152009.webp"
-  },
-  "8": {
-    "name": "Local",
-    "image": "anuncios/espacio-8-1795550183655.webp"
-  },
-  "9": {
-    "name": "Local 3",
-    "image": "anuncios/espacio-9-1795550205846.webp"
-  },
-  "10": {
-    "name": "Pet",
-    "image": "anuncios/espacio-10-1795550223956.webp"
-  },
-  "13": {
-    "name": "Ter",
-    "image": "anuncios/espacio-13-1795550251254.webp"
-  },
-  "14": {
-    "name": "Termino",
-    "image": "anuncios/espacio-14-1795550312479.webp"
-  },
   "_pages": 3,
   "_layouts": {
-    "1": 1,
-    "2": 4,
+    "1": 2,
+    "2": 2,
     "3": 2
   }
 }
