@@ -11,6 +11,10 @@
     "name": "Local",
     "image": "anuncios/espacio-8-1795550183655.webp"
   },
+  "9": {
+    "name": "Local 3",
+    "image": "anuncios/espacio-9-1795550205846.webp"
+  },
   "_pages": 3,
   "_layouts": {
     "1": 1,
