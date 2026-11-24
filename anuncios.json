@@ -15,6 +15,10 @@
     "name": "Comer",
     "image": "anuncios/espacio-13-1795558942678.webp"
   },
+  "19": {
+    "name": "Premium",
+    "image": "anuncios/espacio-19-1795558976334.webp"
+  },
   "_pages": 4,
   "_layouts": {
     "1": 2,
