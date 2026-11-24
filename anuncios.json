@@ -3,10 +3,9 @@
     "name": "Veterinaria",
     "image": "anuncios/espacio-1-1795558050605.webp"
   },
-  "_pages": 3,
+  "_pages": 2,
   "_layouts": {
     "1": 2,
-    "2": 2,
-    "3": 2
+    "2": 2
   }
 }
