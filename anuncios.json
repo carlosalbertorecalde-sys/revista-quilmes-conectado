@@ -1,40 +1,23 @@
 {
   "1": {
-    "name": "Los girasoles de silvia",
-    "image": "anuncios/espacio-19-1795549920767.webp"
-  },
-  "2": {
-    "name": "Ferreteria",
-    "image": "anuncios/espacio-20-1795549939581.webp"
-  },
-  "3": {
-    "name": "Kiosco gaby",
-    "image": "anuncios/espacio-21-1795549956319.webp"
-  },
-  "4": {
-    "name": "Dietetica",
-    "image": "anuncios/espacio-22-1795549978776.webp"
-  },
-  "7": {
     "name": "Gnc",
     "image": "anuncios/espacio-25-1795547233658.webp"
   },
-  "8": {
+  "2": {
     "name": "Golden",
     "image": "anuncios/espacio-26-1795547375938.webp"
   },
-  "9": {
+  "3": {
     "name": "San roq",
     "image": "anuncios/espacio-27-1795547405329.webp"
   },
-  "13": {
+  "7": {
     "name": "Genersl",
     "image": "anuncios/espacio-31-1795547705913.webp"
   },
-  "_pages": 3,
+  "_pages": 2,
   "_layouts": {
-    "1": 4,
-    "2": 3,
-    "3": 1
+    "1": 3,
+    "2": 1
   }
 }
