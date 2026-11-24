@@ -47,6 +47,10 @@
     "name": "Ferreteria",
     "image": "anuncios/espacio-20-1795547111750.webp"
   },
+  "21": {
+    "name": "Kiosco gaby",
+    "image": "anuncios/espacio-21-1795547138747.webp"
+  },
   "_pages": 6,
   "_layouts": {
     "1": 3,
