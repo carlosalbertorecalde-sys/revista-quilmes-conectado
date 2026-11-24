@@ -1,24 +1,4 @@
 {
-  "1": {
-    "name": "Veterinaria",
-    "image": "anuncios/espacio-1-1795556383296.webp"
-  },
-  "2": {
-    "name": "Seguris",
-    "image": "anuncios/espacio-2-1795556404629.webp"
-  },
-  "8": {
-    "name": "Nico",
-    "image": "anuncios/espacio-8-1795556554413.webp"
-  },
-  "13": {
-    "name": "Girasoles",
-    "image": "anuncios/espacio-13-1795556501544.webp"
-  },
-  "14": {
-    "name": "Petshop",
-    "image": "anuncios/espacio-14-1795556526200.webp"
-  },
   "_pages": 4,
   "_layouts": {
     "1": 2,
