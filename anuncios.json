@@ -3,6 +3,10 @@
     "name": "Veter",
     "image": "anuncios/espacio-1-1795558849977.webp"
   },
+  "2": {
+    "name": "Cafe",
+    "image": "anuncios/espacio-2-1795558877680.webp"
+  },
   "_pages": 4,
   "_layouts": {
     "1": 2,
