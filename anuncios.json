@@ -15,6 +15,10 @@
     "name": "Local 3",
     "image": "anuncios/espacio-9-1795550205846.webp"
   },
+  "10": {
+    "name": "Pet",
+    "image": "anuncios/espacio-10-1795550223956.webp"
+  },
   "_pages": 3,
   "_layouts": {
     "1": 1,
