@@ -11,6 +11,10 @@
     "name": "Veterinaria",
     "image": "anuncios/espacio-7-1795537188951.webp"
   },
+  "8": {
+    "name": "Cafeteria",
+    "image": "anuncios/espacio-8-1795537282991.webp"
+  },
   "_pages": 10,
   "_layouts": {
     "1": 2,
