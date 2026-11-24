@@ -3,6 +3,10 @@
     "name": "Veterinaria",
     "image": "anuncios/espacio-1-1795556383296.webp"
   },
+  "2": {
+    "name": "Seguris",
+    "image": "anuncios/espacio-2-1795556404629.webp"
+  },
   "_pages": 3,
   "_layouts": {
     "1": 2,
