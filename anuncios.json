@@ -1,32 +1,4 @@
 {
-  "1": {
-    "name": "Veter",
-    "image": "anuncios/espacio-1-1795558849977.webp"
-  },
-  "2": {
-    "name": "Cafe",
-    "image": "anuncios/espacio-2-1795558877680.webp"
-  },
-  "7": {
-    "name": "Veterrrr",
-    "image": "anuncios/espacio-7-1795558906634.webp"
-  },
-  "8": {
-    "name": "Trip",
-    "image": "anuncios/espacio-8-1795559097232.webp"
-  },
-  "13": {
-    "name": "Comer",
-    "image": "anuncios/espacio-13-1795558942678.webp"
-  },
-  "14": {
-    "name": "Pppppp",
-    "image": "anuncios/espacio-14-1795559193732.webp"
-  },
-  "19": {
-    "name": "Premium",
-    "image": "anuncios/espacio-19-1795558976334.webp"
-  },
   "_pages": 4,
   "_layouts": {
     "1": 2,
