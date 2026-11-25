@@ -1,4 +1,8 @@
 {
+  "1": {
+    "name": "Prueba premium",
+    "image": "anuncios/espacio-1-1795651157359.webp"
+  },
   "_pages": 30,
   "_layouts": {
     "1": 1,
