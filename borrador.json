@@ -3,6 +3,10 @@
     "name": "Prueba premium",
     "image": "anuncios/espacio-1-1795651157359.webp"
   },
+  "7": {
+    "name": "Prueba estandar",
+    "image": "anuncios/espacio-7-1795652212668.webp"
+  },
   "_pages": 30,
   "_layouts": {
     "1": 1,
