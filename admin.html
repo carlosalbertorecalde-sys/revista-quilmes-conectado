@@ -40,7 +40,7 @@ function changeQueue(fn){rememberQueue();fn();drawQueue()}
 $('batch').onclick=()=>{if(connected&&!$('publish').disabled)$('multi').click()};
 $('multi').onchange=()=>{const files=Array.from($('multi').files);$('multi').value='';if(!files.length)return;if(files.length>30)return status('Seleccioná hasta 30 imágenes.');if(files.some(f=>!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>12e6))return status('Usá imágenes JPG, PNG o WebP de hasta 12 MB.');if(queue.length&&!confirm('¿Reemplazar la selección de imágenes sin publicar?'))return;releaseQueue();queueEdition=editionPath;queue=files.map(file=>{const url=URL.createObjectURL(file);queueUrls.add(url);return [{file,name:file.name.replace(/\.[^.]+$/,''),url,uploads:{}}]});drawQueue()};
 function queueButton(parent,label,fn,disabled=false){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=disabled;b.onclick=fn;parent.append(b)}
-function drawQueue(){q.replaceChildren();if(!queue.length){if(queueHistory.length)queueButton(q,'Deshacer',()=>{queue=queueHistory.pop();drawQueue()});return}
+function drawQueue(){q.replaceChildren();if(!queue.length){if(queueHistory.length){queueButton(q,'Deshacer',()=>{queue=queueHistory.pop();drawQueue()});queueButton(q,'Descartar lote',()=>{releaseQueue();drawQueue()})}return}
  const h=document.createElement('p');h.textContent=queue.reduce((n,g)=>n+g.length,0)+' imágenes · '+queue.length+' páginas nuevas. Elegí cuáles van juntas o solas. No se reemplazarán anuncios existentes.';q.append(h);
  queueButton(q,'Deshacer último cambio',()=>{queue=queueHistory.pop();drawQueue()},!queueHistory.length);
  queue.forEach((group,i)=>{
