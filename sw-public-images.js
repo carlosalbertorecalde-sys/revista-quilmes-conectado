@@ -8,7 +8,13 @@ function eligible(request){
  const u=new URL(request.url);
  return request.method==='GET'&&request.destination==='image'&&u.origin===self.location.origin&&
  /^\/anuncios\/[A-Za-z0-9._-]+\.(webp|png|jpe?g)$/i.test(u.pathname)&&
- u.searchParams.get('qc_public')==='1'&&/^[0-9a-f]{64}$/.test(u.searchParams.get('v')||'')&&
+ u.searchParams.get('qc_public')==='1'&&(
+ /^[0-9a-f]{64}$/.test(u.searchParams.get('v')||'')||
+ (()=>{
+  const match=/^\/anuncios\/(?:espacio-\d+-|portada-)([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\.webp$/i.exec(u.pathname);
+  return !!match&&match[1].replace(/-/g,'').toLowerCase()===u.searchParams.get('v')
+ })()
+ )&&
  [...u.searchParams.keys()].every(k=>k==='qc_public'||k==='v');
 }
 async function store(request,response){
@@ -31,18 +37,22 @@ async function store(request,response){
  }
  await cache.put(request,new Response(new Blob(chunks),{headers:{'Content-Type':response.headers.get('content-type'),'X-QC-Bytes':String(size)}}));
 }
+let pendingStores=0;
 self.addEventListener('fetch',event=>{
  if(!eligible(event.request))return;
  const request=event.request;
- event.respondWith((async()=>{
-  try{const hit=await (await caches.open(CACHE)).match(request);if(hit)return hit}catch(_){}
+ const result=(async()=>{
+  try{const hit=await (await caches.open(CACHE)).match(request);if(hit)return {response:hit}}catch(_){}
   const response=await fetch(request);
-  if(response.ok){
+  let task;
+  if(response.ok&&!response.redirected&&pendingStores<2&&Number(response.headers.get('content-length')||0)<=MAX_IMAGE){
    const copy=response.clone();
-   const task=writes.then(()=>store(request,copy)).catch(()=>{});
+   pendingStores++;
+   task=writes.then(()=>store(request,copy)).catch(()=>{}).finally(()=>{pendingStores--});
    writes=task;
-   await task;
   }
-  return response;
- })());
+  return {response,task};
+ })();
+ event.respondWith(result.then(value=>value.response));
+ event.waitUntil(result.then(value=>value.task).catch(()=>{}));
 });
