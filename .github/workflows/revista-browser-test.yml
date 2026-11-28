@@ -1,0 +1,23 @@
+name: Revista pruebas de navegador aisladas
+on:
+  pull_request:
+    branches: [feature/carga-masiva-inteligente]
+    paths:
+      - 'tests/revista-browser.cjs'
+      - '.github/workflows/revista-browser-test.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/revista-browser.cjs
