@@ -102,7 +102,7 @@ function fixturePdf(){
  assert.equal(commits,beforeSchedule);assert.equal(draft._publishAt,undefined);
  await page.locator('#smartOpen').click();
  await page.locator('#smartFiles').setInputFiles([{name:'wrong.pdf',mimeType:'application/pdf',buffer:fixturePdf()}]);
- await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('No se importaron'));
+ await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('No se agregó esta tanda'));
  assert.equal(await page.locator('#smartSave').isDisabled(),true);assert.equal(commits,beforeSchedule);
  await page.locator('#smartClose').click();
  failReload=true;
