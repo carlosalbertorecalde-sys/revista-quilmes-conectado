@@ -316,7 +316,7 @@ for(const id of ['publish','remove','saveLayout','batch','deletePage','pageUp','
 const originalQueue=publishQueue;publishQueue=async function(){if(reservedArticle(manifest,Number($('page').value)))return status('Página reservada para un informe.');return originalQueue()};
 // Lock navigation during asynchronous manual image uploads, including validation.
 let manualBusy=false;
-async function manualExclusive(action,receiver){if(manualBusy||!connected)return;manualBusy=true;const regions=Array.from(document.querySelectorAll('body > section')),previous=regions.map(x=>x.inert);regions.forEach(x=>x.inert=true);try{return await action.call(receiver)}finally{regions.forEach((x,i)=>x.inert=previous[i]);manualBusy=false}}
+async function manualExclusive(action,receiver){if(manualBusy||!connected)return;manualBusy=true;const regions=Array.from(document.querySelectorAll('main > section')),previous=regions.map(x=>x.inert);regions.forEach(x=>x.inert=true);try{return await action.call(receiver)}finally{regions.forEach((x,i)=>x.inert=previous[i]);manualBusy=false}}
 for(const id of ['publish','remove']){const action=$(id).onclick;$(id).onclick=function(){return manualExclusive(action,this)}}
 const safeQueue=publishQueue;publishQueue=function(){return manualExclusive(safeQueue,this)};
 
