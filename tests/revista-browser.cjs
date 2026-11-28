@@ -118,6 +118,25 @@ function fixturePdf(){
  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Publicidad guardada en borrador'));
  assert.equal(draft[31].name,'Manual fixture');assert.equal(await page.locator('#edition').evaluate(e=>e.closest('section').inert),false);assert.deepEqual(current,{_pages:2,_layouts:{1:1}});
  console.log('OK: manual upload locks navigation and preserves active edition');
+ await page.locator('#reserveNumbers').fill('12, 13-14');await page.locator('#reserveSave').click();
+ await page.waitForFunction(()=>document.querySelector('#reserveStatus').textContent.includes('Reservas guardadas'));
+ assert.deepEqual(draft._reservedPages,[12,13,14]);assert.ok(draft._pages>=14);
+ const beforeBlocked=commits;await page.locator('#reserveNumbers').fill('2, 15');await page.locator('#reserveSave').click();
+ await page.waitForFunction(()=>document.querySelector('#reserveStatus').textContent.includes('ya tienen contenido'));
+ assert.equal(commits,beforeBlocked);assert.deepEqual(draft._reservedPages,[12,13,14]);
+ await page.getByRole('button',{name:'Liberar página 14',exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('#reserveStatus').textContent.includes('Reserva liberada'));
+ assert.deepEqual(draft._reservedPages,[12,13]);
+ const reservedPlan=await page.evaluate(()=>allocatePages({_pages:5,_reservedPages:[2,3]},Array.from({length:4},()=>({layout:1,items:[{}]}))).map(p=>p.page));
+ assert.deepEqual(reservedPlan,[1,4,5,6]);
+ await page.locator('#emptyPageSelect').selectOption('12');await page.locator('#emptyFill').click();await page.locator('#smartFiles').setInputFiles([file('reserved-fill.png',v)]);
+ await page.waitForFunction(()=>!document.querySelector('#smartSave').disabled);await page.locator('#smartSave').click();await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('Guardadas 1 imágenes'));
+ assert.equal(draft[67].name,'reserved-fill');assert.deepEqual(draft._reservedPages,[13]);await page.locator('#smartClose').click();
+ await page.locator('#quickDeletePage').selectOption('12');await page.locator('#quickDelete').click();
+ await page.waitForFunction(()=>document.querySelector('#quickDeleteStatus').textContent.includes('Página 12 eliminada'));
+ assert.ok(!Object.values(draft).some(x=>x?.name==='reserved-fill'));assert.equal(draft[7].name,'Keep');assert.deepEqual(draft._reservedPages,[12]);assert.deepEqual(current,{_pages:2,_layouts:{1:1}});
+ console.log('OK: reserve multiple pages, skip reservations, reject occupied pages, release, fill and delete one page safely');
+
  assert.deepEqual(errors,[]);console.log('OK: browser image batch, mixed PDF, existing ads, preview-origin lock, atomic mock conflict');
  console.log('OK: fill partial, fill empty, schedule guard, reject PDF in ads mode');
  }finally{await browser.close();}
