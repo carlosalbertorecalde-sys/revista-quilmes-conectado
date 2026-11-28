@@ -19,14 +19,14 @@ jobs:
           set -euo pipefail
           tmp="$(mktemp -d)"
           export TMP_CHECK="$tmp"
-          for pair in 'official|https://revista-quilmes-conectado.pages.dev/admin.html' 'clean|https://revista-quilmes-conectado.pages.dev/admin' 'preview|https://2a25aef9.revista-quilmes-conectado.pages.dev/admin.html'; do
+          for pair in 'official|https://revista-quilmes-conectado.pages.dev/admin.html' 'clean|https://revista-quilmes-conectado.pages.dev/admin' 'preview|https://3ff37ba2.revista-quilmes-conectado.pages.dev/admin.html'; do
             label="${pair%%|*}"; url="${pair#*|}"
             curl --location --max-redirs 4 --fail --silent --show-error --max-time 15 -H 'Cache-Control: no-cache' -D "$tmp/$label.headers" -w "$label HTTP %{http_code} %{url_effective}\n" "$url?verify=$GITHUB_RUN_ID" -o "$tmp/$label.html" || true
           done
           python3 - <<'PY'
           import os,pathlib,hashlib,subprocess
           p=pathlib.Path(os.environ['TMP_CHECK'])
-          expected=subprocess.check_output(['git','show','116639d319ab4e4eefc88541f9cec836ee32de19:admin.html'])
+          expected=subprocess.check_output(['git','show','0dc2c08f66da8dc6e4a5b4b5c755b82eb2801b4b:admin.html'])
           previous=subprocess.check_output(['git','show','1182236316328ce68d539ed79c5ceabfe8343f1c:admin.html'])
           old=subprocess.check_output(['git','show','321af5d1103f64ce2d2eda6363414c93120fc23e:admin.html'])
           def label(b):
@@ -40,6 +40,6 @@ jobs:
                   if line.lower().startswith(('http/','location:','cf-cache-status:','age:','etag:','content-type:','last-modified:')): print(line)
           for name in ['official','clean']:
               assert (p/(name+'.html')).read_bytes()==expected, 'Ruta oficial aún no coincide: '+name
-          assert b'id="manualDetails"' in expected and b'id="smartAddMore"' in expected
-          print('OK: ambas rutas oficiales sirven la carga acumulativa y panel simplificado')
+          assert b'id="reservePanel"' in expected and b'id="quickDeletePanel"' in expected
+          print('OK: ambas rutas oficiales sirven reservas múltiples y eliminación individual')
           PY
