@@ -1,0 +1,43 @@
+name: Preparar lector PDF local (rama de prueba)
+on:
+  push:
+    branches: [feature/carga-masiva-inteligente]
+    paths: [.github/workflows/preparar-lector-pdf.yml]
+permissions:
+  contents: write
+concurrency:
+  group: preparar-pdf-prueba
+  cancel-in-progress: false
+jobs:
+  vendor:
+    if: github.ref == 'refs/heads/feature/carga-masiva-inteligente'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: feature/carga-masiva-inteligente
+      - name: Descargar versión exacta y copiar recursos
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          cd "$tmp"
+          npm pack pdfjs-dist@6.5.438 --ignore-scripts --registry=https://registry.npmjs.org
+          tar -xzf pdfjs-dist-6.5.438.tgz
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p vendor/pdfjs
+          cp "$tmp/package/legacy/build/pdf.mjs" "$tmp/package/legacy/build/pdf.worker.mjs" vendor/pdfjs/
+          cp "$tmp/package/LICENSE" vendor/pdfjs/
+          for d in cmaps standard_fonts wasm iccs; do
+            if [ -d "$tmp/package/$d" ]; then cp -R "$tmp/package/$d" vendor/pdfjs/; fi
+          done
+          printf '%s\n' 'PDF.js 6.5.438 · paquete npm oficial · licencia Apache-2.0' > vendor/pdfjs/VERSION.txt
+          test -s vendor/pdfjs/pdf.mjs
+          test -s vendor/pdfjs/pdf.worker.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add vendor/pdfjs
+          if ! git diff --cached --quiet; then
+            git commit -m 'Incorporar lector PDF local 6.5.438 y recursos'
+            git push origin HEAD:refs/heads/feature/carga-masiva-inteligente
+          fi
