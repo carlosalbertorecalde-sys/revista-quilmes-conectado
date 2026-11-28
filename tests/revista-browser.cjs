@@ -12,7 +12,7 @@ function fixturePdf(){
 (async()=>{
  const browser=await chromium.launch({headless:true});try{
  const ctx=await browser.newContext({viewport:{width:412,height:870},isMobile:true,hasTouch:true,serviceWorkers:'block'});
- let head='fixture-head',current={_pages:2,_layouts:{1:1}},draft={_pages:8,_layouts:{1:1,2:2},1:{name:'Existing',image:'anuncios/existing.webp'},7:{name:'Keep',image:'anuncios/keep.webp'}},draftSha='draft-start',tree=null,commits=0,writes=0,conflict=false;
+ let head='fixture-head',current={_pages:2,_layouts:{1:1}},draft={_pages:8,_layouts:{1:1,2:2},1:{name:'Existing',image:'anuncios/existing.webp'},7:{name:'Keep',image:'anuncios/keep.webp'}},draftSha='draft-start',tree=null,commits=0,writes=0,conflict=false,failReload=false,reloadFailed=false;
  const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-headers':'*'};
  const logs=[];
  await ctx.route('**/*',async r=>{
@@ -23,13 +23,13 @@ function fixturePdf(){
    const p=url.pathname.slice(new URL(api).pathname.length),method=req.method(),body=req.postDataJSON();
    let out,status=200;
    if(method==='GET'&&p==='contents/anuncios.json')out={sha:'public-start',content:Buffer.from(JSON.stringify(current)).toString('base64')};
-   else if(method==='GET'&&p==='contents/borrador.json')out={sha:draftSha,content:Buffer.from(JSON.stringify(draft)).toString('base64')};
+   else if(method==='GET'&&p==='contents/borrador.json'){if(reloadFailed){status=503;out={message:'fixture reload unavailable'};}else out={sha:draftSha,content:Buffer.from(JSON.stringify(draft)).toString('base64')};}
    else if(method==='GET'&&p.startsWith('git/ref/heads/'))out={object:{sha:head}};
    else if(method==='GET'&&p.startsWith('git/commits/'))out={tree:{sha:'fixture-base-tree'}};
    else if(method==='POST'&&p==='git/blobs'){assert.equal(body.encoding,'base64');assert.ok(Buffer.from(body.content,'base64').length>0);out={sha:'blob-'+(++writes)};}
    else if(method==='POST'&&p==='git/trees'){tree=body.tree;out={sha:'tree-'+writes};}
    else if(method==='POST'&&p==='git/commits'){assert.deepEqual(body.parents,[head]);out={sha:'commit-'+(++commits)};}
-   else if(method==='PATCH'&&p.startsWith('git/refs/heads/')){assert.equal(body.force,false);if(conflict){status=422;out={message:'fixture conflict'};}else{const entry=tree.find(x=>x.path==='borrador.json');assert.ok(entry);draft=JSON.parse(entry.content);draftSha='draft-'+commits;head=body.sha;out={object:{sha:head}};}}
+   else if(method==='PATCH'&&p.startsWith('git/refs/heads/')){assert.equal(body.force,false);if(conflict){status=422;out={message:'fixture conflict'};}else{const entry=tree.find(x=>x.path==='borrador.json');assert.ok(entry);draft=JSON.parse(entry.content);draftSha='draft-'+commits;head=body.sha;if(failReload)reloadFailed=true;out={object:{sha:head}};}}
    else{throw Error('Unexpected API route '+method+' '+p);}
    logs.push(method+' '+p);return r.fulfill({status,headers:cors,contentType:'application/json',body:JSON.stringify(out)});
   }
@@ -94,6 +94,12 @@ function fixturePdf(){
  await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('No se importaron'));
  assert.equal(await page.locator('#smartSave').isDisabled(),true);assert.equal(commits,beforeSchedule);
  await page.locator('#smartClose').click();
+ failReload=true;
+ await page.locator('#smartOpen').click();await page.locator('#smartFiles').setInputFiles([file('saved-once.png',v)]);await page.waitForFunction(()=>!document.querySelector('#smartSave').disabled);await page.locator('#smartSave').click();await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('El borrador se guardó, pero no se pudo recargar'));
+ assert.equal(commits,beforeSchedule+1);assert.equal(Object.values(draft).filter(x=>x?.name==='saved-once').length,1);assert.equal(await page.locator('#smartSave').isDisabled(),true);
+ await page.locator('#smartClose').click();await page.locator('#smartOpen').click();assert.equal(await page.locator('#smartDialog').evaluate(e=>e.open),false);
+ reloadFailed=false;failReload=false;await page.locator('#token').fill('fixture-only');await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Conectado'));
+ console.log('OK: committed once, refresh failure requires reconnect');
  assert.deepEqual(errors,[]);console.log('OK: browser image batch, mixed PDF, existing ads, preview-origin lock, atomic mock conflict');
  console.log('OK: fill partial, fill empty, schedule guard, reject PDF in ads mode');
  }finally{await browser.close();}
