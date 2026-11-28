@@ -13,7 +13,7 @@ function fixturePdf(){
  const browser=await chromium.launch({headless:true});try{
  const ctx=await browser.newContext({viewport:{width:412,height:870},isMobile:true,hasTouch:true,serviceWorkers:'block'});
  let head='fixture-head',current={_pages:2,_layouts:{1:1}},draft={_pages:8,_layouts:{1:1,2:2},1:{name:'Existing',image:'anuncios/existing.webp'},7:{name:'Keep',image:'anuncios/keep.webp'}},draftSha='draft-start',tree=null,commits=0,writes=0,conflict=false,failReload=false,reloadFailed=false;
- const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-headers':'*'};
+ const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PUT,PATCH,OPTIONS','access-control-allow-headers':'*'};
  const logs=[];
  await ctx.route('**/*',async r=>{
   const req=r.request(),url=new URL(req.url());
