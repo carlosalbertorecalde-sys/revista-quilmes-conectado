@@ -53,13 +53,17 @@ function fixturePdf(){
  const h=await makePng(240,100),v=await makePng(100,240);
  const file=(name,buffer)=>({name,mimeType:'image/png',buffer});
  assert.equal(await page.locator('#batch,#multi,#queue').count(),0);assert.equal(await page.getByText('Cargar varias imágenes (hasta 30)',{exact:true}).count(),0);console.log('OK: obsolete 30-image upload removed');
- await page.locator('#smartOpen').click();
+ assert.equal(await page.locator('#manualDetails').evaluate(e=>e.open),false);assert.equal(await page.locator('#pages').isVisible(),false);
+ const chooserPromise=page.waitForEvent('filechooser');await page.locator('#smartOpen').click();const directChooser=await chooserPromise;assert.equal(directChooser.isMultiple(),true);
  assert.equal(await page.locator('#smartDialog').isVisible(),true);assert.equal(await page.locator('#smartHeading').isVisible(),true);assert.equal(await page.locator('#edition').isVisible(),false);assert.equal(await page.locator('#smartClose').isVisible(),true);
  await page.evaluate(()=>{window.fixtureDecode=window.createImageBitmap;window.createImageBitmap=()=>Promise.reject(Error('fixture Android decoder unavailable'))});
- await page.locator('#smartFiles').setInputFiles([file('h1.png',h),file('h2.png',h),file('v1.png',v)]);
+ await directChooser.setFiles([file('h1.png',h),file('h2.png',h)]);
+ await page.waitForFunction(()=>document.querySelector('#smartCount').textContent==='2 de 500 imágenes seleccionadas'&&!document.querySelector('#smartAddMore').disabled);
+ const morePromise=page.waitForEvent('filechooser');await page.locator('#smartAddMore').click();const moreChooser=await morePromise;await moreChooser.setFiles([file('v1.png',v)]);
  await page.waitForFunction(()=>!document.querySelector('#smartSave').disabled);
  assert.match(await page.locator('#smartStatus').innerText(),/3 imágenes.*2 horizontales.*1 verticales.*2 páginas/);
- assert.equal(await page.locator('#smartFiles').evaluate(e=>e.files.length),3);assert.equal(await page.locator('#smartPreview img').count(),3);console.log('OK: inline mobile panel, image decoder fallback, retained file selection');
+ assert.equal(await page.locator('#smartFiles').evaluate(e=>e.files.length),1);assert.match(await page.locator('#smartCount').innerText(),/3 de 500/);assert.equal(await page.locator('#smartPreview img').count(),3);console.log('OK: inline mobile panel, image decoder fallback, retained file selection');
+ await page.locator('#smartFiles').setInputFiles([{name:'bad.png',mimeType:'image/png',buffer:Buffer.from('invalid')}]);await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('Se conservaron 3 imágenes anteriores'));assert.match(await page.locator('#smartCount').innerText(),/3 de 500/);assert.equal(await page.locator('#smartPreview img').count(),3);console.log('OK: direct chooser, accumulated batches, rollback invalid batch, folded manual tools');
  await page.locator('#smartSave').click();await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('Guardadas 3 imágenes'),{},{timeout:30000});
  assert.equal(draft[1].name,'Existing');assert.equal(draft[7].name,'Keep');assert.equal(Object.keys(draft).filter(k=>/^\d+$/.test(k)).length,5);assert.deepEqual(current,{_pages:2,_layouts:{1:1}});
  await page.locator('#smartClose').click();
@@ -98,7 +102,7 @@ function fixturePdf(){
  assert.equal(commits,beforeSchedule);assert.equal(draft._publishAt,undefined);
  await page.locator('#smartOpen').click();
  await page.locator('#smartFiles').setInputFiles([{name:'wrong.pdf',mimeType:'application/pdf',buffer:fixturePdf()}]);
- await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('No se importaron'));
+ await page.waitForFunction(()=>document.querySelector('#smartStatus').textContent.includes('No se agregó esta tanda'));
  assert.equal(await page.locator('#smartSave').isDisabled(),true);assert.equal(commits,beforeSchedule);
  await page.locator('#smartClose').click();
  failReload=true;
@@ -108,6 +112,7 @@ function fixturePdf(){
  reloadFailed=false;failReload=false;await page.locator('#token').fill('fixture-only');await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Conectado'));
  console.log('OK: committed once, refresh failure requires reconnect');
  await page.locator('#edition').selectOption('borrador.json');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Editando borrador'));
+ await page.locator('#manualDetails > summary').click();assert.equal(await page.locator('#pages').isVisible(),true);
  await page.locator('#page').selectOption('6');await page.locator('#name').fill('Manual fixture');await page.locator('#photo').setInputFiles(file('manual.png',v));
  await page.locator('#publish').click();await page.waitForFunction(()=>document.querySelector('main > section').inert===true);assert.equal(await page.locator('#edition').evaluate(e=>e.closest('section').inert),true);
  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Publicidad guardada en borrador'));
