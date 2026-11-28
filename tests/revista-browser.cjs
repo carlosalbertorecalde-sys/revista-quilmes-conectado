@@ -47,6 +47,7 @@ function fixturePdf(){
  await page.goto('https://preview.invalid/admin.html');await page.locator('#token').fill('fixture-only');await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('sin conexión'));assert.equal(logs.length,0);
  await page.goto(official+'/admin.html');await page.locator('#token').fill('fixture-only');await page.locator('#connect').click();await page.waitForFunction(()=>!document.querySelector('#edition').disabled);
  await page.locator('#smartOpen').click();assert.equal(await page.locator('#smartDialog').evaluate(e=>e.open),false);
+ assert.equal(await page.locator('#smartNotice').isVisible(),true);assert.match(await page.locator('#smartNotice').innerText(),/Estás en Edición publicada/);
  await page.locator('#edition').selectOption('borrador.json');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Editando borrador'));
  const makePng=async(w,h)=>Buffer.from(await page.evaluate(([w,h])=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#10549a';x.fillRect(0,0,w,h);return c.toDataURL('image/png').split(',')[1];},[w,h]),'base64');
  const h=await makePng(240,100),v=await makePng(100,240);
