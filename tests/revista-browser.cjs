@@ -52,6 +52,7 @@ function fixturePdf(){
  const makePng=async(w,h)=>Buffer.from(await page.evaluate(([w,h])=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#10549a';x.fillRect(0,0,w,h);return c.toDataURL('image/png').split(',')[1];},[w,h]),'base64');
  const h=await makePng(240,100),v=await makePng(100,240);
  const file=(name,buffer)=>({name,mimeType:'image/png',buffer});
+ assert.equal(await page.locator('#batch,#multi,#queue').count(),0);assert.equal(await page.getByText('Cargar varias imágenes (hasta 30)',{exact:true}).count(),0);console.log('OK: obsolete 30-image upload removed');
  await page.locator('#smartOpen').click();
  assert.equal(await page.locator('#smartDialog').isVisible(),true);assert.equal(await page.locator('#smartHeading').isVisible(),true);assert.equal(await page.locator('#edition').isVisible(),false);assert.equal(await page.locator('#smartClose').isVisible(),true);
  await page.evaluate(()=>{window.fixtureDecode=window.createImageBitmap;window.createImageBitmap=()=>Promise.reject(Error('fixture Android decoder unavailable'))});
