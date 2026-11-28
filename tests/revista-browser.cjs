@@ -136,6 +136,18 @@ function fixturePdf(){
  await page.waitForFunction(()=>document.querySelector('#quickDeleteStatus').textContent.includes('Página 12 eliminada'));
  assert.ok(!Object.values(draft).some(x=>x?.name==='reserved-fill'));assert.equal(draft[7].name,'Keep');assert.deepEqual(draft._reservedPages,[12]);assert.deepEqual(current,{_pages:2,_layouts:{1:1}});
  console.log('OK: reserve multiple pages, skip reservations, reject occupied pages, release, fill and delete one page safely');
+ assert.equal(await page.locator('#folderOpen').isVisible(),false);
+ await page.evaluate(()=>{window.qcNativeFolderEnabled=true;window.qcNativeFolderReady()});
+ assert.equal(await page.locator('#folderOpen').isVisible(),true);
+ const folderChoice=page.waitForEvent('filechooser');await page.locator('#folderOpen').click();const folder=await folderChoice;
+ assert.equal(folder.isMultiple(),true);assert.equal(await page.locator('#smartFolderFiles').getAttribute('accept'),'application/x-qc-publicidades,image/jpeg,image/png,image/webp');
+ const beforeFolder=commits;await folder.setFiles(Array.from({length:32},(_,i)=>file('folder-'+i+'.png',i%2?h:v)));
+ await page.waitForFunction(()=>document.querySelector('#smartCount').textContent==='32 de 500 imágenes seleccionadas'&&!document.querySelector('#smartSave').disabled);
+ assert.equal(await page.locator('#smartPreview img').count(),32);assert.equal(commits,beforeFolder);
+ assert.equal(await page.evaluate(()=>smartPlan.some(p=>reservedPages(manifest).includes(p.page))),false);
+ await page.locator('#smartClose').click();assert.equal(commits,beforeFolder);
+ console.log('OK: native-capability folder chooser, 32 file preview, reservations retained, no write before confirmation');
+
 
  assert.deepEqual(errors,[]);console.log('OK: browser image batch, mixed PDF, existing ads, preview-origin lock, atomic mock conflict');
  console.log('OK: fill partial, fill empty, schedule guard, reject PDF in ads mode');
