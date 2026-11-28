@@ -26,6 +26,7 @@ function fixturePdf(){
    else if(method==='GET'&&p==='contents/borrador.json'){if(reloadFailed){status=503;out={message:'fixture reload unavailable'};}else out={sha:draftSha,content:Buffer.from(JSON.stringify(draft)).toString('base64')};}
    else if(method==='GET'&&p.startsWith('git/ref/heads/'))out={object:{sha:head}};
    else if(method==='GET'&&p.startsWith('git/commits/'))out={tree:{sha:'fixture-base-tree'}};
+   else if(method==='PUT'&&p.startsWith('contents/anuncios/')){assert.ok(Buffer.from(body.content,'base64').length>0);assert.equal(body.branch,'main');await new Promise(r=>setTimeout(r,600));out={content:{path:p.slice('contents/'.length)}};}
    else if(method==='POST'&&p==='git/blobs'){assert.equal(body.encoding,'base64');assert.ok(Buffer.from(body.content,'base64').length>0);out={sha:'blob-'+(++writes)};}
    else if(method==='POST'&&p==='git/trees'){tree=body.tree;out={sha:'tree-'+writes};}
    else if(method==='POST'&&p==='git/commits'){assert.deepEqual(body.parents,[head]);out={sha:'commit-'+(++commits)};}
@@ -100,6 +101,12 @@ function fixturePdf(){
  await page.locator('#smartClose').click();await page.locator('#smartOpen').click();assert.equal(await page.locator('#smartDialog').evaluate(e=>e.open),false);
  reloadFailed=false;failReload=false;await page.locator('#token').fill('fixture-only');await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Conectado'));
  console.log('OK: committed once, refresh failure requires reconnect');
+ await page.locator('#edition').selectOption('borrador.json');await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Editando borrador'));
+ await page.locator('#page').selectOption('6');await page.locator('#name').fill('Manual fixture');await page.locator('#photo').setInputFiles(file('manual.png',v));
+ await page.locator('#publish').click();await page.waitForFunction(()=>document.querySelector('main > section').inert===true);assert.equal(await page.locator('#edition').evaluate(e=>e.closest('section').inert),true);
+ await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Publicidad guardada en borrador'));
+ assert.equal(draft[31].name,'Manual fixture');assert.equal(await page.locator('#edition').evaluate(e=>e.closest('section').inert),false);assert.deepEqual(current,{_pages:2,_layouts:{1:1}});
+ console.log('OK: manual upload locks navigation and preserves active edition');
  assert.deepEqual(errors,[]);console.log('OK: browser image batch, mixed PDF, existing ads, preview-origin lock, atomic mock conflict');
  console.log('OK: fill partial, fill empty, schedule guard, reject PDF in ads mode');
  }finally{await browser.close();}
