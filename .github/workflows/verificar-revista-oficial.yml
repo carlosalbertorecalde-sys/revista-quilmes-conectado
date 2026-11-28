@@ -1,0 +1,45 @@
+name: Comprobar revista oficial solo lectura
+on:
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/verificar-revista-oficial.yml']
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Diagnóstico de rutas, caché y revisión oficial
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          export TMP_CHECK="$tmp"
+          for pair in 'official|https://revista-quilmes-conectado.pages.dev/admin.html' 'clean|https://revista-quilmes-conectado.pages.dev/admin' 'preview|https://11b33db8.revista-quilmes-conectado.pages.dev/admin.html'; do
+            label="${pair%%|*}"; url="${pair#*|}"
+            curl --location --max-redirs 4 --fail --silent --show-error --max-time 15 -H 'Cache-Control: no-cache' -D "$tmp/$label.headers" -w "$label HTTP %{http_code} %{url_effective}\n" "$url?verify=$GITHUB_RUN_ID" -o "$tmp/$label.html" || true
+          done
+          python3 - <<'PY'
+          import os,pathlib,hashlib,subprocess
+          p=pathlib.Path(os.environ['TMP_CHECK'])
+          expected=subprocess.check_output(['git','show','0608f9e70c92befbc6f1815899fd080c38bfd459:admin.html'])
+          previous=subprocess.check_output(['git','show','1182236316328ce68d539ed79c5ceabfe8343f1c:admin.html'])
+          old=subprocess.check_output(['git','show','321af5d1103f64ce2d2eda6363414c93120fc23e:admin.html'])
+          def label(b):
+              return 'corregido' if b==expected else 'versión anterior' if b==previous else 'original' if b==old else 'distinto'
+          for name in ['official','clean','preview']:
+              f=p/(name+'.html')
+              if not f.exists(): print(name,'sin respuesta'); continue
+              b=f.read_bytes()
+              print(name,'bytes',len(b),'revision',label(b),'sha256',hashlib.sha256(b).hexdigest(),'panel',b'<section id="smartDialog"' in b,'modal',b'.showModal()' in b,'antiguo30',b'Cargar varias im' in b and b'(hasta 30)' in b)
+              for line in (p/(name+'.headers')).read_text().splitlines():
+                  if line.lower().startswith(('http/','location:','cf-cache-status:','age:','etag:','content-type:','last-modified:')): print(line)
+          for name in ['official','clean']:
+              assert (p/(name+'.html')).read_bytes()==expected, 'Ruta oficial aún no coincide: '+name
+          assert b'id="reservePanel"' in expected and b'id="quickDeletePanel"' in expected and b'id="smartFolderFiles"' in expected and b'#folderOpen[hidden]' in expected
+          print('OK: ambas rutas oficiales sirven importador de carpeta compatible con la próxima APK')
+          PY
