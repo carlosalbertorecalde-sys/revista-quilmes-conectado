@@ -1,77 +1,73 @@
 {
   "1": {
-    "name": "Prueba premium",
-    "image": "anuncios/espacio-1-1795651157359.webp"
-  },
-  "7": {
     "name": "Prueba estandar",
     "image": "anuncios/espacio-7-1795652212668.webp"
   },
-  "8": {
+  "2": {
     "name": "Prueba",
     "image": "anuncios/espacio-8-1795652253152.webp"
   },
-  "13": {
+  "7": {
     "name": "file_000000009d14820ea1b10a73ac848af7",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-13.webp"
   },
-  "14": {
+  "8": {
     "name": "file_00000000e214820e9cc4c41b113dcc59",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-14.webp"
   },
-  "19": {
+  "13": {
     "name": "file_00000000f578623090518fce34bcb755",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-19.webp"
   },
-  "25": {
+  "19": {
     "name": "file_00000000a148820e86b708b7106b8ded",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-25.webp"
   },
-  "31": {
+  "25": {
     "name": "file_00000000417c820ebacedacb8596e7ef",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-31.webp"
   },
-  "37": {
+  "31": {
     "name": "file_00000000d044820eaa310bf9d8a7759e",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-37.webp"
   },
-  "43": {
+  "37": {
     "name": "file_000000004f84820eb79931b2d8b420f9",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-43.webp"
   },
-  "49": {
+  "43": {
     "name": "file_00000000af44820ea7eb8d9c3b2b50e5",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-49.webp"
   },
-  "55": {
+  "49": {
     "name": "file_00000000c6a8820ea304fc6863337dda",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-55.webp"
   },
-  "61": {
+  "55": {
     "name": "file_0000000072b4820e8081aff951582e14",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-61.webp"
   },
-  "67": {
+  "61": {
     "name": "file_0000000020d8720eb209fb142acac0b2",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-67.webp"
   },
-  "73": {
+  "67": {
     "name": "file_00000000c160820ea4301bca9e3549a7",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-73.webp"
   },
-  "79": {
+  "73": {
     "name": "1795740364480",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-79.webp"
   },
-  "85": {
+  "79": {
     "name": "file_000000002cac61fd8472aa0ca8a1cd96",
     "image": "anuncios/auto-161f7ff9-9470-4e14-aa7d-869a424775b6-85.webp"
   },
-  "_pages": 15,
+  "_pages": 14,
   "_layouts": {
-    "1": 1,
+    "1": 2,
     "2": 2,
-    "3": 2,
+    "3": 1,
     "4": 1,
     "5": 1,
     "6": 1,
@@ -82,8 +78,7 @@
     "11": 1,
     "12": 1,
     "13": 1,
-    "14": 1,
-    "15": 1
+    "14": 1
   },
   "_articles": {}
 }
