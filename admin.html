@@ -50,9 +50,59 @@ let smartItems=[],smartPlan=[],smartBusy=false,smartSnapshot=null,smartMode='ads
 const smartMsg=t=>$('smartStatus').textContent=t;
 function smartClear(){smartItems.forEach(x=>URL.revokeObjectURL(x.url));smartItems=[];smartPlan=[];$('smartPreview').replaceChildren();$('smartFiles').value='';$('smartMix').disabled=true;$('smartSave').disabled=true}
 function smartCanEdit(){return connected&&!window.qcArchived&&editionPath===$('edition').options[1].value&&!manifest._publishAt&&!$('publish').disabled&&!$('slot').disabled}
+function projectEdition(m,assigned,mode){
+ const next={...m,_layouts:{...m._layouts},_articles:{...m._articles}};
+ const occupied=Object.keys(m).filter(k=>/^\d+$/.test(k)&&m[k]).map(k=>Math.ceil(Number(k)/6));
+ const articleEnds=Object.values(next._articles).map(a=>a.start+a.count-1);
+ const highest=Math.max(1,...occupied,...articleEnds,...assigned.map(x=>x.page));
+ next._pages=Math.max(highest,['fill','partial'].includes(mode)?Number(m._pages)||25:1);
+ if(!Number.isInteger(next._pages)||next._pages>10000)throw Error('Cantidad de páginas inválida.');
+ for(const k of Object.keys(next._layouts))if(Number(k)>next._pages)delete next._layouts[k];
+ for(const page of assigned){
+  next._layouts[page.page]=page.layout;
+  for(let j=0;j<page.items.length;j++){
+   const key=(page.page-1)*6+(page.slots?.[j]||j+1);
+   if(next[key])throw Error('El espacio '+key+' ya está ocupado.');
+   next[key]={name:'Archivo previsto'};
+  }
+ }
+ if(mode==='article'&&assigned.length){
+  let key='__preview_article';while(next._articles[key])key+='_';
+  next._articles[key]={start:assigned[0].page,count:assigned.length};
+ }
+ return next;
+}
+function editionSummary(m){
+ const reserved=new Set();for(const a of Object.values(m._articles||{}))for(let p=a.start;p<a.start+a.count;p++)reserved.add(p);
+ let full=0,double=0,legacy=0,editorial=0,cover=0,ads=0;
+ const empty=[],partial=[],pages=[];
+ for(let p=1;p<=m._pages;p++){
+  const layout=Math.max(1,Math.min(6,Number(m._layouts?.[p])||2)),base=(p-1)*6;
+  const slots=Array.from({length:layout},(_,i)=>Boolean(m[base+i+1])),used=slots.filter(Boolean).length;
+  const isReserved=reserved.has(p);
+  if(!used)empty.push(p);
+  else if(isReserved){if(p===1)cover++;else editorial++}
+  else{ads+=used;if(layout===1)full++;else if(layout===2)double++;else legacy++}
+  if(layout===2&&used===1&&!isReserved)partial.push({page:p,slot:slots[0]?2:1});
+  pages.push({page:p,layout,used,reserved:isReserved,cover:p===1&&isReserved});
+ }
+ return {total:m._pages,full,double,legacy,editorial,cover,ads,empty,partial,pages};
+}
+
+function renderEditionSummary(root,stats){
+ const summary=document.createElement('section'),heading=document.createElement('h3');heading.textContent='Total previsto de la revista: '+stats.total+' páginas';summary.append(heading);
+ const lines=[stats.ads+' publicidades · '+stats.double+' páginas dobles · '+stats.full+' completas',stats.cover+' portada(s) reservada(s) · '+stats.editorial+' páginas de informes',stats.empty.length+' páginas vacías · '+stats.partial.length+' espacios individuales libres'];
+ if(stats.legacy)lines.push(stats.legacy+' páginas de formato anterior');
+ for(const text of lines){const p=document.createElement('p');p.textContent=text;summary.append(p)}
+ if(stats.empty.length||stats.partial.length){const p=document.createElement('p');p.className='note';p.textContent='Después de guardar el borrador podés completar los espacios desde el control de páginas y espacios vacíos. No se reemplazan los informes.';summary.append(p)}
+ const details=document.createElement('details'),label=document.createElement('summary');label.textContent='Ver distribución completa por número de página';details.append(label);
+ const list=document.createElement('ol');for(const p of stats.pages){const row=document.createElement('li');row.textContent=p.cover?'Portada reservada':p.reserved?'Informe reservado'+(!p.used?' (falta contenido)':''):!p.used?'Página vacía':p.layout===1?'Publicidad completa':p.layout===2?'Doble · '+p.used+'/2 espacios ocupados':'Formato anterior · '+p.used+'/'+p.layout;list.append(row)}details.append(list);summary.append(details);root.append(summary);
+}
+
 function smartRender(){
  try{const plan=smartMode==='article'?smartItems.map(item=>({layout:1,items:[item]})):smartPlan;smartPlan=smartMode==='partial'?partialPlan(manifest,smartItems,smartFillPage,smartFillSlot):smartMode==='fill'?manualPagePlan(manifest,smartItems,smartFillPage):allocatePages(manifest,plan,smartMode==='article'?Number($('articleStart').value):null)}catch(e){$('smartPreview').replaceChildren();$('smartSave').disabled=true;smartMsg(e.message);return}
  const preview=$('smartPreview');preview.replaceChildren();
+ try{renderEditionSummary(preview,editionSummary(projectEdition(manifest,smartPlan,smartMode)))}catch(e){$('smartSave').disabled=true;smartMsg(e.message);return}
  const h=smartItems.filter(x=>x.width>x.height).length,v=smartItems.length-h;
  smartMsg(smartMode==='partial'?'Página '+smartFillPage+' · espacio '+(smartFillSlot===1?'superior':'inferior')+' libre':smartMode==='fill'?'Página '+smartFillPage+' · '+smartItems.length+' imagen(es) · '+(smartItems.length===1?'Completa':'Doble'):smartMode==='article'?(smartPlan.length?'Informe: páginas '+smartPlan[0].page+' a '+smartPlan.at(-1).page:'Elegí imágenes'):(smartItems.length+' imágenes · '+h+' horizontales · '+v+' verticales/cuadradas · '+smartPlan.length+' páginas'+(h%2?' · un espacio libre':'')));
  const frag=document.createDocumentFragment();
@@ -157,8 +207,7 @@ $('smartSave').onclick=async()=>{
   if(!draft||draft.path===active||draft.sha!==smartSnapshot.sha||draft.m._publishAt)throw Error('La edición cambió o está programada. Volvé a cargarla.');
   const next={...draft.m,_layouts:{...draft.m._layouts},_articles:{...draft.m._articles}};
   const assigned=smartMode==='partial'?partialPlan(next,smartItems,smartFillPage,smartFillSlot):smartMode==='fill'?manualPagePlan(next,smartItems,smartFillPage):allocatePages(next,smartMode==='article'?smartItems.map(item=>({layout:1,items:[item]})):smartPlan,articleStart);
-  const lastOccupied=Object.keys(next).filter(k=>/^\d+$/.test(k)&&next[k]).reduce((max,k)=>Math.max(max,Math.ceil(Number(k)/6)),0);
-  next._pages=Math.max(['fill','partial'].includes(smartMode)?(Number(draft.m._pages)||25):1,lastOccupied,...assigned.map(p=>p.page),...Object.values(next._articles).map(a=>a.start+a.count-1));
+  next._pages=projectEdition(next,assigned,smartMode)._pages;
   for(const k of Object.keys(next._layouts))if(Number(k)>next._pages)delete next._layouts[k];
   const tree=[],batchId=crypto.randomUUID();let n=0;
   if(smartMode==='article')next._articles[batchId]={title:articleTitle,start:articleStart,count:assigned.length};
@@ -181,7 +230,7 @@ $('smartSave').onclick=async()=>{
   const commit=await smartGit('git/commits','POST',{message:smartMode==='partial'?'Completar espacio de página '+smartFillPage:smartMode==='fill'?'Completar página '+smartFillPage+' del borrador':smartMode==='article'?'Guardar informe en borrador':'Carga automática de '+n+' publicidades en borrador',tree:newTree.sha,parents:[head]});
   if((await smartGit(ref)).object.sha!==head)throw Error('Otro cambio fue guardado durante la carga. No se modificó la revista; recargá y reintentá.');
   await smartGit('git/refs/heads/'+encodeURIComponent(BRANCH),'PATCH',{sha:commit.sha,force:false});committed=true;
-  await load();smartClear();smartMsg('Guardadas '+n+' imágenes en el borrador. Revisá la vista previa antes de programar.');
+  await load();smartClear();smartMsg('Guardadas '+n+' imágenes en el borrador. Total de la revista: '+next._pages+' páginas. Revisá la vista previa antes de programar.');
  }catch(e){smartMsg((committed?'El borrador se guardó, pero no se pudo recargar. Reconectá antes de repetir: ':'No se confirmó la carga. Revisá el borrador antes de reintentar: ')+e.message)}
  finally{smartBusy=false;$('smartFiles').disabled=false;$('smartClose').disabled=false;$('articleTitle').disabled=false;$('articleStart').disabled=false;$('smartMix').disabled=['fill','partial'].includes(smartMode)||committed||!smartItems.length;$('smartSave').disabled=committed||!smartItems.length}
 };
