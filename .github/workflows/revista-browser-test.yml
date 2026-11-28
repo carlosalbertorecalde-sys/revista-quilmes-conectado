@@ -1,8 +1,10 @@
 name: Revista pruebas de navegador aisladas
 on:
   pull_request:
-    branches: [feature/carga-masiva-inteligente]
+    branches: [main, feature/carga-masiva-inteligente]
     paths:
+      - 'admin.html'
+      - 'index.html'
       - 'tests/revista-browser.cjs'
       - '.github/workflows/revista-browser-test.yml'
 permissions:
