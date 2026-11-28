@@ -147,6 +147,14 @@ function fixturePdf(){
  assert.equal(await page.evaluate(()=>smartPlan.some(p=>reservedPages(manifest).includes(p.page))),false);
  await page.locator('#smartClose').click();assert.equal(commits,beforeFolder);
  console.log('OK: native-capability folder chooser, 32 file preview, reservations retained, no write before confirmation');
+ const allPromise=page.waitForEvent('filechooser');await page.locator('#folderOpen').click();const all=await allPromise;
+ await all.setFiles(Array.from({length:500},(_,i)=>file('large-fixture-'+i+'.png',i<300?h:v)));
+ await page.waitForFunction(()=>document.querySelector('#smartCount').textContent==='500 de 500 imágenes seleccionadas'&&!document.querySelector('#smartSave').disabled,{},{timeout:60000});
+ assert.equal(await page.locator('#smartPreview img').count(),500);assert.equal(await page.locator('#smartAddMore').isVisible(),false);
+ assert.equal(await page.evaluate(()=>smartPlan.some(p=>reservedPages(manifest).includes(p.page))),false);
+ assert.equal(commits,beforeFolder);await page.locator('#smartClose').click();assert.equal(commits,beforeFolder);
+ console.log('OK: 500 small fixture images, preview, reservation protection and no premature commit');
+
 
 
  assert.deepEqual(errors,[]);console.log('OK: browser image batch, mixed PDF, existing ads, preview-origin lock, atomic mock conflict');
