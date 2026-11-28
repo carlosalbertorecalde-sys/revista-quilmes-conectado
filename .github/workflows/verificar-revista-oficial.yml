@@ -1,0 +1,41 @@
+name: Comprobar revista oficial solo lectura
+on:
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/verificar-revista-oficial.yml']
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Descargar recursos oficiales sin credenciales
+        run: |
+          set -euo pipefail
+          base=https://revista-quilmes-conectado.pages.dev
+          tmp="$(mktemp -d)"
+          export TMP_CHECK="$tmp"
+          for f in admin.html index.html anuncios.json borrador.json; do
+            curl --fail --silent --show-error --max-time 15 --retry 1 -H 'Cache-Control: no-cache' "$base/$f?verify=71ac8a8" -o "$tmp/$f"
+          done
+          python3 - <<'PY'
+          import os,pathlib,hashlib,json
+          p=pathlib.Path(os.environ['TMP_CHECK'])
+          a=(p/'admin.html').read_text()
+          assert '<section id="smartDialog"' in a, 'Panel nuevo ausente'
+          assert 'Cargar varias imágenes (hasta 30)' not in a, 'Botón anterior presente'
+          assert '.showModal()' not in a, 'Modal anterior presente'
+          assert 'decodeLocalImage' in a, 'Falta lectura alternativa'
+          for name in ['admin.html','index.html']:
+              assert (p/name).read_bytes()==pathlib.Path(name).read_bytes(), 'Contenido web no coincide: '+name
+          for name in ['anuncios.json','borrador.json']:
+              m=json.loads((p/name).read_text())
+              assert isinstance(m,dict)
+              # Only report equality; never print advertiser content.
+              print(name, 'coincide con revisión' if (p/name).read_bytes()==pathlib.Path(name).read_bytes() else 'revisión editorial diferente')
+          print('OK: sitio oficial sirve exactamente el administrador corregido y lector esperado')
+          PY
